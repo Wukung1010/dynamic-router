@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind variants;
+@tailwind utilities;
+@tailwind components;
+
+html, body, #app {
+  @apply h-full font-sans;
+}
