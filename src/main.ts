@@ -1,6 +1,6 @@
 import './main.css'
 import { createApp } from 'vue'
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory, RouteLocationRaw, RouteRecordRaw } from 'vue-router'
 import App from './App.vue'
 import Layout from './Layout.vue'
 import AppWrapper from './AppWrapper.vue'
@@ -22,6 +22,23 @@ const router = createRouter({
   history: createWebHashHistory()
 })
 
+// proxy router.push
+const o_push = router.push
+let curApp: AppInfo | undefined
+router.push = (to: RouteLocationRaw & { noApp?: boolean}) => {
+  const noApp = to.noApp || false
+  if (!noApp && curApp) {
+    if (typeof to === 'string') {
+      const next = `/app/${curApp.name}${to}`
+      console.log(`rebuild route from: ${to}; to: ${next}`)
+      return o_push.call(router, next)
+    } else {
+    }
+  } else {
+    return o_push.call(router, to)
+  }
+}
+
 const app = createApp(App)
 app.use(router).mount('#app')
 
@@ -40,10 +57,13 @@ router.beforeEach(async (to) => {
   const result = fullPath.match(/\/app\/([A-Za-z0-9]*)[\/]?/)
   if (result && result[1]) {
     const appName = result[1]
+    curApp = apps.find(({ name }) => name === appName)
     if (!cache.has(appName)) {
       await loadApp(appName)
       return to
     }
+  } else {
+    curApp = undefined
   }
 })
 async function loadApp(app: AppInfo | string) {
@@ -65,7 +85,7 @@ async function goApp (app: AppInfo) {
   if (!cache.has(app.name)) {
     await loadApp(app)
   }
-  router.push(`/app/${app.name}`)
+  router.push({ path: `/app/${app.name}`, noApp: true } as any)
 }
 
 export { goApp, apps }

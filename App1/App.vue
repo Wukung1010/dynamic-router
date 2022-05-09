@@ -3,11 +3,10 @@ import { useRouter, RouteRecordRaw } from 'vue-router'
 import routes from './routes'
 
 const router = useRouter()
-const rootPath = router.currentRoute.value.fullPath
 
 const links = routes
 function goPage(link: RouteRecordRaw) {
-  router.push(`${rootPath}/${link.path}`)
+  router.push(`/${link.path}`)
 }
 </script>
 <template>
